@@ -1,0 +1,17 @@
+{
+  "name": "ОПОРА · Заявки",
+  "short_name": "ОПОРА",
+  "description": "Заявки с сайта ОПОРЫ: статусы, заметки, сводка.",
+  "lang": "ru",
+  "start_url": "./#/leads",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0e2338",
+  "theme_color": "#13304a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
