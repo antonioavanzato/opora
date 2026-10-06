@@ -97,6 +97,13 @@ async function hitRate(key, { limit, windowSec }) {
   return Number(rows[0].cnt) <= limit;
 }
 
+async function deleteLead(id) {
+  const lead = await getLead(id);
+  if (!lead) return false;
+  await query('DECLARE $id AS Utf8; DELETE FROM leads WHERE id = $id;', { $id: TypedValues.utf8(id) });
+  return true;
+}
+
 async function savePush(sub) {
   await query(`
     DECLARE $e AS Utf8; DECLARE $s AS Json; DECLARE $at AS Timestamp;
@@ -111,4 +118,4 @@ async function deletePush(endpoint) {
   await query('DECLARE $e AS Utf8; DELETE FROM push_subs WHERE endpoint = $e;', { $e: TypedValues.utf8(endpoint) });
 }
 
-module.exports = { setIamToken, query, driver, createLead, listLeads, getLead, updateLead, hitRate, savePush, listPush, deletePush };
+module.exports = { setIamToken, query, driver, createLead, listLeads, getLead, updateLead, deleteLead, hitRate, savePush, listPush, deletePush };

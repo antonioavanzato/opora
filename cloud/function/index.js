@@ -113,6 +113,10 @@ const routes = {
     return lead ? json(200, lead) : fail(404, 'Заявка не найдена.');
   },
 
+  async deleteLead(event, id) {
+    return (await db.deleteLead(id)) ? json(200, { ok: true }) : fail(404, 'Заявка не найдена.');
+  },
+
   async pushSubscribe(event) {
     const sub = parseBody(event);
     if (!sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || !sub.keys) return fail(400, 'Некорректная подписка.');

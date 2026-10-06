@@ -11,7 +11,7 @@
 ## Архитектура
 Без сборки: `index.html` + `css/app.css` + ES-модули `js/*.js`.
 - `js/api.js` — единственная точка доступа к данным:
-  `login(email, password) → {token, user}`, `logout()`, `listLeads() → Lead[]`, `updateLead(id, patch) → Lead`, `addNote(id, text) → Lead`.
+  `login(email, password) → {token, user}`, `logout()`, `listLeads() → Lead[]`, `updateLead(id, patch) → Lead`, `addNote(id, text) → Lead`, `deleteLead(id)`, `savePush(sub)`.
   Реализация — `CloudApi` (fetch к Yandex Cloud, адрес — `API_BASE` в `js/config.js`).
 - `js/app.js` — роутинг по hash (`#/leads`, `#/lead/<id>`, `#/stats`), рендер экранов.
 - `sw.js` — кэш оболочки приложения (ответы API не кэширует).
@@ -40,6 +40,9 @@
 
 ## Рекомендуемый пакет (эвристика)
 «больше 15» или «расти по прогнозам» → Премиум; «5–15» или «не вижу прибыль» → Про; «хаос в документах» → Аудит + Лайт; иначе → Лайт.
+
+## Обновление списка
+Потянуть вниз (на телефоне), кнопка «Обновить», автоматически при возврате в приложение и раз в минуту, пока оно открыто.
 
 ## Вне v1
 Редактирование контента лендинга, несколько пользователей, push-уведомления (уведомления идут в Telegram из облака).

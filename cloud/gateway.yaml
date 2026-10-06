@@ -10,7 +10,7 @@ x-yc-apigateway:
       - https://antonioavanzato.github.io
       - https://oporasamitovva.wfolio.pro
       - http://localhost:8790
-    methods: [GET, POST, PATCH, OPTIONS]
+    methods: [GET, POST, PATCH, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization]
     maxAge: 3600
     optionsSuccessStatus: 204
@@ -44,6 +44,16 @@ paths:
         service_account_id: __SA_ID__
         context:
           route: updateLead
+    delete:
+      operationId: deleteLead
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: deleteLead
   /leads/{id}/notes:
     post:
       operationId: addNote

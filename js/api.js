@@ -43,6 +43,7 @@ const CloudApi = {
   listLeads: () => call('/leads'),
   updateLead: (id, patch) => call('/leads/' + encodeURIComponent(id), { method: 'PATCH', body: patch }),
   addNote: (id, text) => call('/leads/' + encodeURIComponent(id) + '/notes', { method: 'POST', body: { text } }),
+  deleteLead: (id) => call('/leads/' + encodeURIComponent(id), { method: 'DELETE' }),
   savePush: (subscription) => call('/push/subscribe', { method: 'POST', body: subscription }),
 };
 

@@ -254,6 +254,8 @@ function renderLead(id) {
         <form class="note-form" id="note-form"><textarea class="field" name="text" placeholder="Например: созвон в четверг в 15:00" maxlength="2000"></textarea><button class="btn btn--ghost" type="submit">Добавить заметку</button></form>
         <div class="notes" style="margin-top:12px">${notes || '<div class="sub" style="color:var(--muted);font-size:14px">Заметок пока нет.</div>'}</div>
       </section>
+      <section class="sect danger"><button class="btn btn--danger btn--block" data-act="delete-lead">Удалить заявку</button>
+        <p class="danger__hint">Заявка удалится из админки и с сервера без возможности восстановления.</p></section>
     </div>`;
   document.body.append(back, d);
   requestAnimationFrame(() => { back.classList.add('is-on'); d.classList.add('is-on'); });
@@ -273,6 +275,16 @@ function renderLead(id) {
       toast('Статус: ' + statusLabel(l.status));
     } catch (e) { toast(e.message); }
   }));
+  d.querySelector('[data-act="delete-lead"]').addEventListener('click', async (e) => {
+    if (!confirm(`Удалить заявку «${l.name}»? Это нельзя отменить.`)) return;
+    const b = e.currentTarget; b.disabled = true; b.textContent = 'Удаляем…';
+    try {
+      await api.deleteLead(l.id);
+      state.leads = state.leads.filter((x) => x.id !== l.id);
+      toast('Заявка удалена');
+      location.hash = '#/leads';
+    } catch (err) { toast(err.message); b.disabled = false; b.textContent = 'Удалить заявку'; }
+  });
   d.querySelector('#note-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = e.target.text.value.trim();
@@ -364,10 +376,66 @@ document.addEventListener('click', async (e) => {
   if (act === 'logout') { api.logout(); state.loaded = false; state.leads = []; location.hash = '#/login'; }
   if (act === 'csv') exportCsv();
   if (act === 'push') enablePush();
-  if (act === 'refresh') { await load(true); route(); toast('Обновлено'); }
+  if (act === 'refresh') refresh(false);
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.querySelector('.drawer')) location.hash = '#/leads'; });
 window.addEventListener('hashchange', route);
+
+/* ---------- свежие заявки: потянуть вниз, возврат в приложение, раз в минуту ---------- */
+let refreshing = false;
+async function refresh(silent) {
+  if (refreshing || !api.session() || !state.loaded) return;
+  refreshing = true;
+  const before = new Set(state.leads.map((l) => l.id));
+  try {
+    await load(true);
+    const fresh = state.leads.filter((l) => !before.has(l.id)).length;
+    if (!document.querySelector('.drawer')) route(); // открытую карточку не перерисовываем
+    if (!silent || fresh) toast(fresh ? 'Новых заявок: ' + fresh : 'Обновлено');
+  } catch (e) { if (!silent) toast(e.message); }
+  finally { refreshing = false; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(true); });
+setInterval(() => { if (document.visibilityState === 'visible') refresh(true); }, 60000);
+
+const ptr = document.createElement('div');
+ptr.className = 'ptr'; ptr.innerHTML = '<span class="ptr__icon">↓</span><span class="ptr__text">Потяните, чтобы обновить</span>';
+document.body.prepend(ptr);
+let pStart = null, pDist = 0;
+const PTR_TRIGGER = 70;
+document.addEventListener('touchstart', (e) => {
+  if (window.scrollY > 0 || document.querySelector('.drawer') || !api.session()) { pStart = null; return; }
+  pStart = e.touches[0].clientY; pDist = 0;
+}, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (pStart === null) return;
+  pDist = Math.max(0, e.touches[0].clientY - pStart);
+  if (pDist <= 0) return;
+  const h = Math.min(pDist * 0.5, 80);
+  ptr.style.height = h + 'px';
+  ptr.classList.toggle('is-ready', pDist > PTR_TRIGGER);
+  ptr.querySelector('.ptr__text').textContent = pDist > PTR_TRIGGER ? 'Отпустите, чтобы обновить' : 'Потяните, чтобы обновить';
+}, { passive: true });
+document.addEventListener('touchend', async () => {
+  if (pStart === null) return;
+  const go = pDist > PTR_TRIGGER; pStart = null;
+  if (go) {
+    ptr.classList.add('is-loading'); ptr.style.height = '56px'; ptr.querySelector('.ptr__text').textContent = 'Обновляем…';
+    await refresh(false);
+  }
+  ptr.classList.remove('is-ready', 'is-loading'); ptr.style.height = '0';
+});
+
+/* ---------- нижнее меню-пилюля: прячется при прокрутке вниз ---------- */
+let lastY = window.scrollY;
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('.bottom-nav');
+  if (!nav) return;
+  const y = window.scrollY, dy = y - lastY;
+  if (Math.abs(dy) < 6) return;
+  nav.classList.toggle('is-hidden', dy > 0 && y > 60);
+  lastY = y;
+}, { passive: true });
 route();
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./sw.js');
