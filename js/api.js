@@ -43,7 +43,7 @@ function seed() {
       form: forms[i % forms.length],
       sphere: spheres[(i * 3) % spheres.length],
       team: teams[(i * 2) % teams.length],
-      cash: i % 4 === 0 ? 'около ' + (i + 2) * 50 + ' тыс. ₽' : '',
+      cash: ['Знает точно', 'Знает примерно', 'Не знает', ''][i % 4],
       page: 'https://oporasamitovva.wfolio.pro/',
       status,
       notes: status === 'new' ? [] : [{ at: created, text: 'Демо-заметка: написала в Telegram.' }],

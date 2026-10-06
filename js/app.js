@@ -243,7 +243,7 @@ function renderLead(id) {
           <dt>Форма</dt><dd>${esc(l.form)}</dd>
           <dt>Сфера</dt><dd>${esc(l.sphere)}</dd>
           <dt>Сотрудников</dt><dd>${esc(l.team)}</dd>
-          ${l.cash ? `<dt>Остаток</dt><dd>${esc(l.cash)}</dd>` : ''}
+          ${l.cash ? `<dt>Знает остаток</dt><dd>${esc(l.cash)}</dd>` : ''}
           <dt>Подходит</dt><dd><span class="pkg">${esc(recommend(l))}</span></dd>
         </dl>
       </section>
@@ -320,6 +320,7 @@ function renderStats() {
       <div class="panel"><h3>Сферы</h3>${bars(countBy(list, (l) => l.sphere), n)}</div>
       <div class="panel"><h3>Форма бизнеса</h3>${bars(countBy(list, (l) => l.form), n)}</div>
       <div class="panel"><h3>Размер команды</h3>${bars(countBy(list, (l) => l.team), n)}</div>
+      <div class="panel"><h3>Знают свой остаток денег</h3>${bars(countBy(list, (l) => l.cash || 'Не ответили'), n)}</div>
     </div>` : '<div class="empty">За этот период заявок нет.</div>'}
   `);
   $app.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => { state.statsPeriod = b.dataset.p; renderStats(); }));
@@ -328,7 +329,7 @@ function renderStats() {
 /* ---------- CSV ---------- */
 function exportCsv() {
   const cols = [['Дата', (l) => new Date(l.createdAt).toLocaleString('ru-RU')], ['Имя', (l) => l.name], ['Способ связи', (l) => l.contactType], ['Контакт', (l) => l.contact],
-    ['Запрос', (l) => l.pain], ['Форма', (l) => l.form], ['Сфера', (l) => l.sphere], ['Сотрудников', (l) => l.team], ['Остаток', (l) => l.cash || ''],
+    ['Запрос', (l) => l.pain], ['Форма', (l) => l.form], ['Сфера', (l) => l.sphere], ['Сотрудников', (l) => l.team], ['Знает остаток', (l) => l.cash || ''],
     ['Пакет', recommend], ['Статус', (l) => statusLabel(l.status)], ['Заметки', (l) => (l.notes || []).map((n) => n.text).join(' | ')]];
   // защита от формул в Excel: значения, начинающиеся с = + - @, экранируем апострофом
   const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
