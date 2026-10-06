@@ -6,13 +6,13 @@
 ## Хостинг и безопасность
 - Код — публичный репозиторий `antonioavanzato/opora`, GitHub Pages. В репозитории **нет данных и секретов**.
 - Данные (заявки с персональными данными) живут только в Yandex Cloud. Доступ — по токену, выданному после входа.
-- До подключения облака работает **демо-режим**: синтетические заявки в `localStorage`, вход любым e-mail и паролем от 6 символов. Плашка «Демо-режим» видна всегда.
+- Демо-режим удалён 06.10.2026: админка работает только с облаком.
 
 ## Архитектура
 Без сборки: `index.html` + `css/app.css` + ES-модули `js/*.js`.
 - `js/api.js` — единственная точка доступа к данным:
   `login(email, password) → {token, user}`, `logout()`, `listLeads() → Lead[]`, `updateLead(id, patch) → Lead`, `addNote(id, text) → Lead`.
-  Реализации: `DemoApi` (localStorage) и `CloudApi` (fetch к Yandex Cloud). Выбор — по `API_BASE` в `js/config.js` (пусто → демо).
+  Реализация — `CloudApi` (fetch к Yandex Cloud, адрес — `API_BASE` в `js/config.js`).
 - `js/app.js` — роутинг по hash (`#/leads`, `#/lead/<id>`, `#/stats`), рендер экранов.
 - `sw.js` — кэш оболочки приложения (ответы API не кэширует).
 

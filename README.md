@@ -13,13 +13,11 @@ PWA: открывается в браузере и устанавливаетс�
 - Выгрузка в CSV (Excel / Google Таблицы).
 - Push-уведомления о новых заявках (Web Push).
 
-## Сейчас — демо-режим
-Облако ещё не подключено, поэтому админка показывает **синтетические** заявки, а вход принимает любой e-mail и пароль от 6 символов. Данные хранятся только в браузере.
+## Вход
+E-mail и пароль Арины. Пароль хранится в облаке только в виде хэша (scrypt), сессия — подписанный токен на 30 дней.
 
-## Подключение облака
-1. В `js/config.js` указать `API_BASE` (адрес API в Yandex Cloud) и `VAPID_PUBLIC_KEY` (для push).
-2. API должен реализовать: `POST /auth/login`, `GET /leads`, `PATCH /leads/:id`, `POST /leads/:id/notes`, `POST /push/subscribe` — см. `docs/spec.md`.
-3. На лендинге в квизе указать `LEAD_ENDPOINT` — адрес приёма заявок.
+## Облако
+Yandex Cloud (free tier): API Gateway → Cloud Function → YDB Serverless. Код и деплой — `cloud/` (`./deploy.sh function|gateway|all`). Адрес API — `js/config.js`; квиз лендинга шлёт заявки на `POST /leads`.
 
 ## Установка на телефон
 - **iPhone (iOS 16.4+):** Safari → «Поделиться» → «На экран Домой». Push работает только у установленного приложения.
@@ -33,7 +31,8 @@ PWA: открывается в браузере и устанавливаетс�
 index.html            оболочка приложения
 css/app.css           стили (фирменные цвета ОПОРЫ)
 js/config.js          адрес API и ключ push
-js/api.js             слой данных: демо (localStorage) / облако (fetch)
+js/api.js             слой данных (fetch к API в Yandex Cloud)
+cloud/                функция, спецификация шлюза, миграции, деплой
 js/app.js             экраны, фильтры, сводка, CSV, push
 sw.js                 офлайн-кэш оболочки и обработка push
 manifest.webmanifest  PWA-манифест

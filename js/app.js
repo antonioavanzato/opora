@@ -81,11 +81,16 @@ async function enablePush() {
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') return toast('Уведомления не разрешены');
   const reg = await navigator.serviceWorker.ready;
-  if (VAPID_PUBLIC_KEY && !api.demo) {
+  if (VAPID_PUBLIC_KEY) {
     try {
       const sub = (await reg.pushManager.getSubscription()) ||
         (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToUint8(VAPID_PUBLIC_KEY) }));
       await api.savePush(sub.toJSON());
+      // локальное подтверждение: видно, что разрешение и показ уведомлений на устройстве работают
+      reg.showNotification('ОПОРА · уведомления включены', {
+        body: 'Новые заявки с сайта будут приходить сюда.',
+        icon: 'icons/icon-192.png', badge: 'icons/favicon-64.png', tag: 'opora-enabled', data: { url: './#/leads' },
+      });
       toast('Уведомления включены');
     } catch (e) { toast('Не удалось подписаться: ' + e.message); }
   } else {
@@ -113,7 +118,6 @@ function shell(tab, inner) {
     <a class="top__logo" href="#/leads">${spiral()}ОПОРА</a>
     <nav class="tabs"><a href="#/leads" class="${tab === 'leads' ? 'is-on' : ''}">Заявки</a><a href="#/stats" class="${tab === 'stats' ? 'is-on' : ''}">Сводка</a></nav>
     <div class="top__right">
-      ${api.demo ? '<span class="demo-badge" title="Данные ненастоящие, облако ещё не подключено">Демо<span class="lbl">-режим</span></span>' : ''}
       <span class="who">${esc(s?.user?.email || '')}</span>
       ${pushButton()}
       <button class="btn btn--ghost" data-act="logout">Выйти</button>
@@ -140,7 +144,6 @@ function renderLogin() {
         <div class="login__err" id="login-err" role="alert"></div>
         <button class="btn btn--accent btn--block" type="submit">Войти</button>
       </form>
-      ${api.demo ? '<p class="login__demo">Демо-режим: облако ещё не подключено. Войдите с любым e-mail и паролем от 6 символов — данные ненастоящие.</p>' : ''}
     </div>
   </section>`;
   const f = document.getElementById('login');
