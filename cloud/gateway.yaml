@@ -1,0 +1,75 @@
+# API Gateway ОПОРЫ. __FUNCTION_ID__ и __SA_ID__ подставляет deploy.sh.
+openapi: "3.0.0"
+info:
+  title: opora-api
+  version: 1.0.0
+
+x-yc-apigateway:
+  cors:
+    origin:
+      - https://antonioavanzato.github.io
+      - https://oporasamitovva.wfolio.pro
+      - http://localhost:8790
+    methods: [GET, POST, PATCH, OPTIONS]
+    allowedHeaders: [Content-Type, Authorization]
+    maxAge: 3600
+    optionsSuccessStatus: 204
+
+paths:
+  /leads:
+    post:
+      operationId: createLead
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: createLead
+    get:
+      operationId: listLeads
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: listLeads
+  /leads/{id}:
+    patch:
+      operationId: updateLead
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: updateLead
+  /leads/{id}/notes:
+    post:
+      operationId: addNote
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: addNote
+  /auth/login:
+    post:
+      operationId: login
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: login
+  /push/subscribe:
+    post:
+      operationId: pushSubscribe
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        service_account_id: __SA_ID__
+        context:
+          route: pushSubscribe

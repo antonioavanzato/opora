@@ -1,0 +1,13 @@
+{
+  "name": "opora-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API ОПОРЫ: приём заявок с сайта, вход в админку, заявки, push. Yandex Cloud Functions (nodejs22).",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.5",
+    "web-push": "^3.6.7",
+    "ydb-sdk": "^5.10.0"
+  }
+}
