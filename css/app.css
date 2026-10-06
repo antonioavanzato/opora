@@ -176,7 +176,7 @@ select.field { appearance: none; padding-right: 36px; background-image: linear-g
 
 /* Потянуть, чтобы обновить */
 .ptr { height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--on-2); font-size: 13px; font-weight: 600;
-  transition: height .2s ease; padding-top: env(safe-area-inset-top, 0px); }
+  transition: height .2s ease; }
 .ptr__icon { display: inline-block; transition: transform .2s; }
 .ptr.is-ready .ptr__icon { transform: rotate(180deg); color: var(--accent); }
 .ptr.is-loading .ptr__icon { animation: ptr-spin .8s linear infinite; }
