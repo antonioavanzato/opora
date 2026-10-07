@@ -9,6 +9,8 @@ x-yc-apigateway:
     origin:
       - https://antonioavanzato.github.io
       - https://oporasamitovva.wfolio.pro
+      - https://oporasamitovva.ru
+      - https://www.oporasamitovva.ru
       - http://localhost:8790
     methods: [GET, POST, PATCH, DELETE, OPTIONS]
     allowedHeaders: [Content-Type, Authorization]
