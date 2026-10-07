@@ -1,6 +1,6 @@
 // Кэш оболочки приложения: админка открывается мгновенно и без сети.
 // Запросы к API не кэшируются — заявки всегда свежие.
-const CACHE = 'opora-admin-v13';
+const CACHE = 'opora-admin-v14';
 const SHELL = [
   './', './index.html', './css/app.css', './js/app.js', './js/api.js', './js/config.js',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon-64.png',

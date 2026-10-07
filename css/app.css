@@ -212,6 +212,7 @@ body.sel-on .page { padding-bottom: 160px; }
 @media (max-width: 700px) {
   body.sel-on .bottom-nav { display: none; }
   .selbar { bottom: calc(10px + var(--safe-b)); }
-  .selbar__acts { width: 100%; }
-  .selbar__acts .field { flex: 1; font-size: 16px; }
+  .selbar__acts { width: 100%; flex-wrap: wrap; }
+  .selbar__acts .field { flex: 1 1 100%; font-size: 16px; }
+  .selbar__acts .btn { flex: 1 1 0; }
 }
