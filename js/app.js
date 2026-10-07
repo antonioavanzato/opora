@@ -192,7 +192,7 @@ function renderLeads() {
       <input class="field search" type="search" placeholder="Поиск: имя, контакт, сфера" value="${esc(state.q)}" data-f="q">
       <select class="field" data-f="pain"><option value="all">Все запросы</option>${pains.map((p) => `<option value="${esc(p)}" ${p === state.pain ? 'selected' : ''}>${esc(shortPain(p))}</option>`).join('')}</select>
       <select class="field" data-f="period">${[['all', 'За всё время'], ['7', '7 дней'], ['30', '30 дней'], ['90', '90 дней']].map(([v, t]) => `<option value="${v}" ${v === state.period ? 'selected' : ''}>${t}</option>`).join('')}</select>
-      <button class="btn btn--ghost" data-act="refresh" title="Обновить">↻ Обновить</button>
+      <button class="btn btn--ghost btn--refresh" data-act="refresh" title="Обновить">↻ Обновить</button>
     </div>
     <div class="chips">
       <button class="chip ${state.status === 'all' ? 'is-on' : ''}" data-status="all">Все<b>${state.leads.length}</b></button>

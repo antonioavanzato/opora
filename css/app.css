@@ -183,3 +183,8 @@ select.field { appearance: none; padding-right: 36px; background-image: linear-g
 @keyframes ptr-spin { to { transform: rotate(360deg); } }
 /* кнопки в карточке заявки не должны распирать экран на телефоне */
 .actions .btn { white-space: normal; text-align: center; min-width: 0; line-height: 1.25; }
+
+/* На сенсорных устройствах обновляем жестом «потянуть» — кнопка не нужна */
+@media (hover: none) and (pointer: coarse) {
+  .btn--refresh { display: none; }
+}
