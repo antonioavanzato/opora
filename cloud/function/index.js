@@ -117,6 +117,15 @@ const routes = {
     return (await db.deleteLead(id)) ? json(200, { ok: true }) : fail(404, 'Заявка не найдена.');
   },
 
+  async bulkLeads(event) {
+    const { ids, action, status } = parseBody(event);
+    const list = Array.isArray(ids) ? [...new Set(ids.map((x) => str(x, 80)).filter(Boolean))] : [];
+    if (!list.length || list.length > 200) return fail(400, 'Выберите от 1 до 200 заявок.');
+    if (action !== 'delete' && !(action === 'status' && STATUSES.includes(status))) return fail(400, 'Неизвестное действие.');
+    const done = await db.bulkLeads(list, action, status);
+    return json(200, { ok: true, done, missing: list.filter((id) => !done.includes(id)) });
+  },
+
   async pushSubscribe(event) {
     const sub = parseBody(event);
     if (!sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || !sub.keys) return fail(400, 'Некорректная подписка.');

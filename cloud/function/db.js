@@ -2,7 +2,7 @@
 // локально (миграции) — через переменные YDB_* (см. ../migrate.js).
 'use strict';
 const crypto = require('crypto');
-const { Driver, getCredentialsFromEnv, TypedValues, TypedData } = require('ydb-sdk');
+const { Driver, getCredentialsFromEnv, TypedValues, TypedData, Types } = require('ydb-sdk');
 const grpc = require('@grpc/grpc-js');
 
 // IAM-токен сервисного аккаунта функции: Cloud Functions передаёт его в context каждого вызова.
@@ -118,4 +118,16 @@ async function deletePush(endpoint) {
   await query('DECLARE $e AS Utf8; DELETE FROM push_subs WHERE endpoint = $e;', { $e: TypedValues.utf8(endpoint) });
 }
 
-module.exports = { setIamToken, query, driver, createLead, listLeads, getLead, updateLead, deleteLead, hitRate, savePush, listPush, deletePush };
+// Массовые действия из админки: статус или удаление для списка заявок. Возвращает id, которые нашлись.
+async function bulkLeads(ids, action, status) {
+  const $ids = TypedValues.list(Types.UTF8, ids);
+  const [rows] = await query('DECLARE $ids AS List<Utf8>; SELECT id FROM leads WHERE id IN $ids;', { $ids });
+  const found = rows.map((r) => r.id);
+  if (!found.length) return [];
+  const $f = TypedValues.list(Types.UTF8, found);
+  if (action === 'delete') await query('DECLARE $f AS List<Utf8>; DELETE FROM leads WHERE id IN $f;', { $f });
+  else await query('DECLARE $f AS List<Utf8>; DECLARE $st AS Utf8; UPDATE leads SET status = $st WHERE id IN $f;', { $f, $st: TypedValues.utf8(status) });
+  return found;
+}
+
+module.exports = { setIamToken, query, driver, createLead, listLeads, getLead, updateLead, deleteLead, bulkLeads, hitRate, savePush, listPush, deletePush };

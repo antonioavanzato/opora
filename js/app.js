@@ -2,7 +2,7 @@ import { api, STATUSES } from './api.js';
 import { VAPID_PUBLIC_KEY } from './config.js';
 
 const $app = document.getElementById('app');
-const state = { leads: [], loaded: false, q: '', status: 'all', pain: 'all', period: 'all', statsPeriod: '30' };
+const state = { leads: [], loaded: false, q: '', status: 'all', pain: 'all', period: 'all', statsPeriod: '30', selMode: false, sel: new Set() };
 
 /* ---------- утилиты ---------- */
 // Заявки приходят из публичной формы — любое поле экранируем перед выводом.
@@ -169,7 +169,8 @@ function renderLeads() {
   const newCount = counts.new || 0;
 
   const rows = list.map((l) => `
-    <tr data-id="${esc(l.id)}">
+    <tr data-id="${esc(l.id)}" class="${state.sel.has(l.id) ? 'is-sel' : ''}">
+      ${state.selMode ? `<td class="selcell"><span class="tick ${state.sel.has(l.id) ? 'is-on' : ''}"></span></td>` : ''}
       <td><div class="name">${esc(l.name)}</div><div class="sub">${esc(l.contactType)}: ${esc(l.contact)}</div></td>
       <td>${esc(shortPain(l.pain))}<div class="sub">${esc(l.form)} · ${esc(l.sphere)} · ${esc(l.team)}</div></td>
       <td><span class="pkg">${esc(recommend(l))}</span></td>
@@ -177,8 +178,8 @@ function renderLeads() {
       <td class="sub">${esc(fmtDate(l.createdAt))}</td>
     </tr>`).join('');
   const cards = list.map((l) => `
-    <article class="card" data-id="${esc(l.id)}" tabindex="0">
-      <div class="card__top"><div><div class="card__name">${esc(l.name)}</div><div class="card__meta">${esc(fmtDate(l.createdAt))}</div></div><span class="status status--${esc(l.status)}">${esc(statusLabel(l.status))}</span></div>
+    <article class="card ${state.sel.has(l.id) ? 'is-sel' : ''}" data-id="${esc(l.id)}" tabindex="0">
+      <div class="card__top">${state.selMode ? `<span class="tick ${state.sel.has(l.id) ? 'is-on' : ''}"></span>` : ''}<div class="card__who"><div class="card__name">${esc(l.name)}</div><div class="card__meta">${esc(fmtDate(l.createdAt))}</div></div><span class="status status--${esc(l.status)}">${esc(statusLabel(l.status))}</span></div>
       <div class="card__pain">${esc(shortPain(l.pain))}</div>
       <div class="card__foot"><span class="card__meta">${esc(l.form)} · ${esc(l.sphere)} · ${esc(l.team)}</span><span class="pkg">${esc(recommend(l))}</span></div>
     </article>`).join('');
@@ -186,7 +187,10 @@ function renderLeads() {
   $app.innerHTML = shell('leads', `
     <div class="page__head">
       <h1>Заявки<small>${state.leads.length} всего${newCount ? ' · ' + newCount + ' новых' : ''}</small></h1>
-      <button class="btn btn--ghost" data-act="csv">Выгрузить CSV</button>
+      <div class="page__acts">
+        <button class="btn btn--ghost" data-act="select">${state.selMode ? 'Отмена' : 'Выбрать'}</button>
+        <button class="btn btn--ghost" data-act="csv">Выгрузить CSV</button>
+      </div>
     </div>
     <div class="toolbar">
       <input class="field search" type="search" placeholder="Поиск: имя, контакт, сфера" value="${esc(state.q)}" data-f="q">
@@ -199,8 +203,9 @@ function renderLeads() {
       ${STATUSES.map((s) => `<button class="chip ${state.status === s.id ? 'is-on' : ''}" data-status="${s.id}">${s.label}<b>${counts[s.id] || 0}</b></button>`).join('')}
     </div>
     ${list.length ? `
-      <table class="table"><thead><tr><th>Клиент</th><th>Запрос и бизнес</th><th>Пакет</th><th>Статус</th><th>Пришла</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="cards">${cards}</div>` :
+      <table class="table"><thead><tr>${state.selMode ? `<th class="selcell"><span class="tick ${list.length && list.every((l) => state.sel.has(l.id)) ? 'is-on' : ''}" data-sel-all title="Выбрать все"></span></th>` : ''}<th>Клиент</th><th>Запрос и бизнес</th><th>Пакет</th><th>Статус</th><th>Пришла</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="cards">${cards}</div>
+      ${state.selMode ? selBar(list) : ''}` :
       `<div class="empty">${state.leads.length ? 'По фильтрам ничего не найдено.' : 'Заявок пока нет. Как только кто-то пройдёт квиз на сайте, заявка появится здесь.'}</div>`}
   `);
 
@@ -212,10 +217,87 @@ function renderLeads() {
   }));
   $app.querySelectorAll('[data-status]').forEach((b) => b.addEventListener('click', () => { state.status = b.dataset.status; renderLeads(); }));
   $app.querySelectorAll('[data-id]').forEach((el) => {
-    const open = () => (location.hash = '#/lead/' + encodeURIComponent(el.dataset.id));
+    const id = el.dataset.id;
+    let pressed = false, timer;
+    const open = () => {
+      if (pressed) { pressed = false; return; }
+      if (state.selMode) { toggleSel(id); return; }
+      location.hash = '#/lead/' + encodeURIComponent(id);
+    };
     el.addEventListener('click', open);
     el.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+    // долгое нажатие на карточку — включить выбор
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || state.selMode) return;
+      timer = setTimeout(() => { pressed = true; navigator.vibrate?.(15); state.selMode = true; state.sel.add(id); renderLeads(); }, 500);
+    });
+    ['pointerup', 'pointercancel', 'pointermove'].forEach((t) => el.addEventListener(t, (e) => {
+      if (t === 'pointermove' && Math.abs(e.movementY) < 4) return;
+      clearTimeout(timer);
+    }));
+    el.addEventListener('contextmenu', (e) => { if (e.pointerType !== 'mouse') e.preventDefault(); });
   });
+  $app.querySelector('[data-sel-all]')?.addEventListener('click', () => {
+    const all = list.every((l) => state.sel.has(l.id));
+    list.forEach((l) => (all ? state.sel.delete(l.id) : state.sel.add(l.id)));
+    renderLeads();
+  });
+  bindSelBar(list);
+}
+
+/* ---------- массовые действия ---------- */
+function toggleSel(id) {
+  state.sel.has(id) ? state.sel.delete(id) : state.sel.add(id);
+  renderLeads();
+}
+function exitSel() { state.selMode = false; state.sel.clear(); }
+function selBar(list) {
+  const n = state.sel.size;
+  const allOn = list.length && list.every((l) => state.sel.has(l.id));
+  return `<div class="selbar" role="toolbar" aria-label="Действия с выбранными заявками">
+    <div class="selbar__info"><b>Выбрано: ${n}</b><button class="selbar__all" data-sel="all">${allOn ? 'Снять все' : 'Выбрать все (' + list.length + ')'}</button></div>
+    <div class="selbar__acts">
+      <select class="field" data-sel="status" ${n ? '' : 'disabled'}><option value="">Статус…</option>${STATUSES.map((st) => `<option value="${st.id}">${st.label}</option>`).join('')}</select>
+      <button class="btn btn--danger" data-sel="remove" ${n ? '' : 'disabled'}>Удалить</button>
+      <button class="btn btn--ghost" data-sel="cancel">Отмена</button>
+    </div>
+  </div>`;
+}
+function bindSelBar(list) {
+  const bar = $app.querySelector('.selbar');
+  document.body.classList.toggle('sel-on', !!bar);
+  if (!bar) return;
+  bar.querySelector('[data-sel="cancel"]').addEventListener('click', () => { exitSel(); renderLeads(); });
+  bar.querySelector('[data-sel="all"]').addEventListener('click', () => {
+    const all = list.every((l) => state.sel.has(l.id));
+    list.forEach((l) => (all ? state.sel.delete(l.id) : state.sel.add(l.id)));
+    renderLeads();
+  });
+  bar.querySelector('[data-sel="status"]').addEventListener('change', (e) => {
+    const st = e.target.value;
+    if (st) runBulk('status', st);
+  });
+  bar.querySelector('[data-sel="remove"]').addEventListener('click', () => {
+    const n = state.sel.size;
+    if (confirm(`Удалить ${n} ${plural(n, 'заявку', 'заявки', 'заявок')}? Это нельзя отменить.`)) runBulk('delete');
+  });
+}
+const plural = (n, one, few, many) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? few : many; };
+async function runBulk(action, status) {
+  const ids = [...state.sel];
+  const bar = $app.querySelector('.selbar');
+  bar?.querySelectorAll('button, select').forEach((x) => (x.disabled = true));
+  try {
+    const res = await api.bulkLeads(ids, action, status);
+    const done = new Set(res.done || []);
+    if (action === 'delete') state.leads = state.leads.filter((l) => !done.has(l.id));
+    else state.leads.forEach((l) => { if (done.has(l.id)) l.status = status; });
+    const n = done.size;
+    toast(action === 'delete' ? `Удалено: ${n}` : `${n} ${plural(n, 'заявка', 'заявки', 'заявок')} → ${statusLabel(status)}`
+      + (res.missing && res.missing.length ? ` (не найдено: ${res.missing.length})` : ''));
+    exitSel();
+  } catch (e) { toast(e.message); }
+  renderLeads();
 }
 
 /* ---------- карточка заявки ---------- */
@@ -367,7 +449,7 @@ async function route() {
   }
   const m = hash.match(/^#\/lead\/(.+)$/);
   if (m) return renderLead(decodeURIComponent(m[1]));
-  if (hash === '#/stats') return renderStats();
+  if (hash === '#/stats') { exitSel(); document.body.classList.remove('sel-on'); return renderStats(); }
   return renderLeads();
 }
 
@@ -375,6 +457,7 @@ document.addEventListener('click', async (e) => {
   const act = e.target.closest('[data-act]')?.dataset.act;
   if (act === 'logout') { api.logout(); state.loaded = false; state.leads = []; location.hash = '#/login'; }
   if (act === 'csv') exportCsv();
+  if (act === 'select') { state.selMode ? exitSel() : (state.selMode = true); renderLeads(); }
   if (act === 'push') enablePush();
   if (act === 'refresh') refresh(false);
 });

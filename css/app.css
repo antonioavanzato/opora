@@ -188,3 +188,30 @@ select.field { appearance: none; padding-right: 36px; background-image: linear-g
 @media (hover: none) and (pointer: coarse) {
   .btn--refresh { display: none; }
 }
+
+/* Массовые действия: выбор заявок и нижняя панель */
+.page__acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.tick { width: 22px; height: 22px; flex: none; border-radius: 7px; border: 2px solid var(--line-2); display: inline-grid; place-items: center; cursor: pointer; transition: .15s; }
+.tick.is-on { background: var(--accent); border-color: var(--accent); }
+.tick.is-on::after { content: ''; width: 10px; height: 6px; border: 2.5px solid var(--navy-2); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
+.table .selcell { width: 44px; padding-right: 0; }
+.table tbody tr.is-sel { background: rgba(232,137,58,.08); }
+.card.is-sel { border-color: var(--accent); background: rgba(232,137,58,.08); }
+.card__top > .card__who { flex: 1; }
+.selbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--safe-b)); z-index: 40; width: min(760px, calc(100% - 24px));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 18px;
+  background: rgba(27,64,96,.94); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--line-2); box-shadow: 0 14px 40px rgba(0,0,0,.45); }
+.selbar__info { display: flex; align-items: center; gap: 12px; }
+.selbar__info b { color: #fff; }
+.selbar__all { color: var(--lav); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.selbar__acts { display: flex; gap: 8px; align-items: center; }
+.selbar__acts .field { width: auto; padding: 10px 36px 10px 12px; font-size: 14px; }
+.selbar__acts .btn { padding: 10px 14px; }
+body.sel-on .page { padding-bottom: 160px; }
+@media (max-width: 700px) {
+  body.sel-on .bottom-nav { display: none; }
+  .selbar { bottom: calc(10px + var(--safe-b)); }
+  .selbar__acts { width: 100%; }
+  .selbar__acts .field { flex: 1; font-size: 16px; }
+}
