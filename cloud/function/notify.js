@@ -42,9 +42,13 @@ async function push(l) {
   })));
 }
 
+// Клиент на сайте ждёт ответа, поэтому уведомления ограничены по времени: заявка уже сохранена в базе.
+const NOTIFY_BUDGET_MS = 3000;
 async function newLead(l) {
-  const results = await Promise.allSettled([telegram(l), push(l)]);
-  results.filter((r) => r.status === 'rejected').forEach((r) => console.error('notify:', r.reason && r.reason.message));
+  const all = Promise.allSettled([telegram(l), push(l)]).then((results) =>
+    results.filter((r) => r.status === 'rejected').forEach((r) => console.error('notify:', r.reason && r.reason.message)));
+  const timer = new Promise((resolve) => setTimeout(() => { console.error('notify: превышен бюджет', NOTIFY_BUDGET_MS, 'мс'); resolve(); }, NOTIFY_BUDGET_MS).unref());
+  await Promise.race([all, timer]);
 }
 
 module.exports = { newLead, leadText };
