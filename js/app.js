@@ -115,7 +115,7 @@ function shell(tab, inner) {
   const s = api.session();
   return `
   <header class="top"><div class="wrap">
-    <a class="top__logo" href="#/leads">${spiral()}ОПОРА</a>
+    <a class="top__logo" href="https://oporasamitovva.ru" target="_blank" rel="noopener" title="Открыть сайт oporasamitovva.ru">${spiral()}ОПОРА</a>
     <nav class="tabs"><a href="#/leads" class="${tab === 'leads' ? 'is-on' : ''}">Заявки</a><a href="#/stats" class="${tab === 'stats' ? 'is-on' : ''}">Сводка</a></nav>
     <div class="top__right">
       <span class="who">${esc(s?.user?.email || '')}</span>
