@@ -20,11 +20,15 @@ const fmtDate = (iso) => {
 const shortPain = (p) => (p || '').replace(' — нужна отчётность в срок', '').replace(' и сценариям', '');
 
 // Рекомендуемый пакет по ответам квиза (эвристика из docs/spec.md)
+// Пакеты с 13.10.2026: Цифры (40 000), Контроль (60 000), только бухгалтерия (от 5 000), НЕЙЛА (от 3 000).
+// В пакетах — до 15 сотрудников; больше — расчёт отдельно.
 function recommend(l) {
-  if (l.team === 'больше 15' || /прогноз/i.test(l.pain)) return 'Премиум';
-  if (/хаос/i.test(l.pain)) return 'Аудит + Лайт';
-  if (l.team === '5–15' || /прибыль/i.test(l.pain)) return 'Про';
-  return 'Лайт';
+  const big = l.team === 'больше 15' ? ' (расчёт)' : '';
+  if (/прогноз/i.test(l.pain)) return 'Контроль' + big;
+  if (/хаос/i.test(l.pain)) return 'Аудит + Цифры' + big;
+  if (/прибыль/i.test(l.pain)) return 'Цифры' + big;
+  if (l.team === 'больше 15') return 'Контроль (расчёт)';
+  return 'Бухгалтерия';
 }
 function contactLink(l) {
   if (l.contactType === 'Телефон') return 'tel:+' + String(l.contact).replace(/\D/g, '');
